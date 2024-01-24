@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload de Arquivo</title>
+</head>
+<body>
+    <h1>Upload de Arquivo</h1>
+    <input type="file" id="fileInput" style="display: none;">
+    <button id="uploadButton">Selecionar Arquivo</button>
+
+    <script>
+        document.getElementById("uploadButton").addEventListener("click", function() {
+            document.getElementById("fileInput").click();
+        });
+
+        document.getElementById("fileInput").addEventListener("change", function() {
+            var file = this.files[0];
+            var formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.text())
+            .then(message => {
+                alert(message);
+            })
+            .catch(error => {
+                console.error("Erro ao enviar arquivo:", error);
+            });
+        });
+    </script>
+</body>
+</html>
