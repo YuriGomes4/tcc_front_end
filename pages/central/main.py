@@ -1,136 +1,142 @@
+import json
 from flet import(
     Column,
-    Row,
+    ListView,
+    ButtonStyle,
+    Container,
     ElevatedButton,
+    Icon,
     icons,
-    FilePicker,
-    FilePickerResultEvent,
     Text,
     Page,
-    FilePickerUploadFile,
+    Row,
+    RoundedRectangleBorder,
+    MainAxisAlignment,
+    CrossAxisAlignment,
+    Margin,
+    margin,
+    TextAlign
 )
 
 import navigation
 import services.config as sv_config
+import services.servidor as sv_servidor
 
-page = Page
+#page = Page
 
-# Pick files dialog
-def pick_files_result(e: FilePickerResultEvent):
-    selected_files.value = (
-        ", ".join(map(lambda f: f.name, e.files)) if e.files else "Cancelled!"
+def on_visible(page):
+
+    listaDisp = []
+
+    dispositivos = sv_servidor.dispositivos_usr()
+
+    tela = Column(
+        [
+            ListView()
+        ],
+        #visible=False
     )
-    selected_files.update()
 
-    #upload_list = []
+    for disp in dispositivos:
+        info = disp['info']
+        info_json = json.loads(info)
+        print(info_json)
 
-    #for file in e.files:
-    #    upload_list.append(
-    #        FilePickerUploadFile(
-    #            file.name,
-    #            upload_url=page.get_upload_url(file.name, 600),
-    #        )
-    #    )
-
-    #pick_files_dialog.upload(upload_list)
-
-    #print("content")
-    #tela.controls[4].value = "content"
-    
-    #navigation.refresh()
-
-pick_files_dialog = FilePicker(on_result=pick_files_result)
-selected_files = Text()
-
-# Save file dialog
-def save_file_result(e: FilePickerResultEvent):
-    save_file_path.value = e.path if e.path else "Cancelled!"
-    save_file_path.update()
-
-save_file_dialog = FilePicker(on_result=save_file_result)
-save_file_path = Text()
-
-# Open directory dialog
-def get_directory_result(e: FilePickerResultEvent):
-    directory_path.value = e.path if e.path else "Cancelled!"
-    directory_path.update()
-
-get_directory_dialog = FilePicker(on_result=get_directory_result)
-directory_path = Text()
-
-def upload_files(e):
-    upload_list = []
-    if pick_files_dialog.result != None and pick_files_dialog.result.files != None:
-        for f in pick_files_dialog.result.files:
-            upload_list.append(
-                FilePickerUploadFile(
-                    f.name,
-                    upload_url=page.get_upload_url(f.name, 600),
+        listaDisp.append(
+            Container(
+                Row(
+                    [
+                        Container(
+                            expand=True,
+                        ),
+                        ElevatedButton(
+                            content=Container(
+                                Row(
+                                    [
+                                        Icon("add"),
+                                        Column(
+                                            [
+                                                Text(value=disp['nome'], size=20),
+                                                Text(value=disp['tipo']),
+                                            ],
+                                            spacing=5,
+                                        ),
+                                    ],
+                                    spacing=30
+                                ),
+                                margin=Margin(10,10,10,10)
+                            ),
+                            style=ButtonStyle(
+                                shape=RoundedRectangleBorder(radius=10),
+                            ),
+                            height=150,
+                            width=150,
+                            key="Opa"
+                        ),
+                        Container(
+                            expand=True,
+                        ),
+                        ElevatedButton(
+                            content=Container(
+                                Row(
+                                    [
+                                        #Icon("add"),
+                                        Column(
+                                            [
+                                                Container(
+                                                    expand=True,
+                                                ),
+                                                Row(
+                                                    [
+                                                        Icon("THERMOSTAT", size=30),
+                                                        Text(value=str(json.loads(disp['info'])['temp']) + " °C", size=20),
+                                                    ],
+                                                    spacing=30
+                                                    #expand=True
+                                                ),
+                                                Container(
+                                                    expand=True,
+                                                ),
+                                                Text(value="Temperatura do\nambiente", text_align=TextAlign.CENTER),
+                                                Container(
+                                                    expand=True,
+                                                ),
+                                            ],
+                                            alignment=MainAxisAlignment.CENTER,
+                                            horizontal_alignment=CrossAxisAlignment.CENTER,
+                                            #spacing=5,
+                                        ),
+                                    ],
+                                    #spacing=30
+                                ),
+                                #margin=Margin(0,10,100,10)
+                            ),
+                            style=ButtonStyle(
+                                shape=RoundedRectangleBorder(radius=10),
+                            ),
+                            #expand=True,
+                            height=150,
+                            width=150
+                        ),
+                        Container(
+                            expand=True,
+                        ),
+                    ],
+                    expand=True
                 )
             )
-        pick_files_dialog.upload(upload_list)
+        )
 
+    tela.controls = listaDisp
 
-# hide all dialogs in overlay
-#page.overlay.extend([pick_files_dialog, save_file_dialog, get_directory_dialog])
+    #print(tela.controls[0].content.controls[0].content.width)
 
-tela = Column(
-    [
-        Row(
-            [
-                ElevatedButton(
-                    "Pick files",
-                    icon=icons.UPLOAD_FILE,
-                    on_click=lambda _: pick_files_dialog.pick_files(
-                        allow_multiple=True
-                    ),
-                ),
-                selected_files,
-            ]
-        ),
-        Row(
-            [
-                ElevatedButton(
-                    "Save file",
-                    icon=icons.SAVE,
-                    on_click=lambda _: save_file_dialog.save_file(),
-                    disabled=page.web,
-                ),
-                save_file_path,
-            ]
-        ),
-        Row(
-            [
-                ElevatedButton(
-                    "Open directory",
-                    icon=icons.FOLDER_OPEN,
-                    on_click=lambda _: get_directory_dialog.get_directory_path(),
-                    disabled=page.web,
-                ),
-                directory_path,
-            ]
-        ),
-        Row(
-            [
-                ElevatedButton(
-                    "Upload file",
-                    icon=icons.FOLDER_OPEN,
-                    on_click=upload_files,
-                ),
-            ]
-        ),
-        Text("")
-    ],
-    visible=False
-)
-
-def on_visible():
-    pass
+    page.add(tela)
 
 navigation.paginas.append(
     {
-        'objeto': tela,
-        'numero': '10',
+        #'objeto': tela,
+        'rota': 'central',
         'vis_event': on_visible,
         'titulo': f"{sv_config.get('versao')} - Central",
     }

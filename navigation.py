@@ -4,10 +4,11 @@ from flet import(
     IconButton,
     icons,
     SnackBar,
-    Text
+    Text,
+    RouteChangeEvent
 )
 
-import pages
+#import pages
 
 paginas = []
 page = Page
@@ -80,6 +81,15 @@ def ChangeScreen(screen, e):
     addit = e.control.key
 
     alterar_pagina()
+
+def route_change(e: RouteChangeEvent):
+    print(e.route)
+    #page.views.clear()
+    page.add(Text(f"New route: {e.route}"))
+
+def NavigationChange2(route):
+    page.route = route
+    page.update()
 
 def notify(texto):
     page.snack_bar = SnackBar(Text(texto))
