@@ -67,4 +67,4 @@ if __name__ == "__main__":
     #flet_path = os.getenv("FLET_PATH", DEFAULT_FLET_PATH)
     flet_path =''
     flet_port = int(os.getenv("FLET_PORT", DEFAULT_FLET_PORT))
-    ft.app(name=flet_path, target=main, view=None, port=flet_port)
+    ft.app(name=flet_path, target=main, view='web_browser', port=flet_port)
