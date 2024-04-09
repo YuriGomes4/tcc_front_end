@@ -16,7 +16,13 @@ from flet import(
     CrossAxisAlignment,
     Margin,
     margin,
-    TextAlign
+    TextAlign,
+    Image,
+    ImageFit,
+    ImageRepeat,
+    border_radius,
+    Padding,
+    TextButton,
 )
 
 import navigation
@@ -58,11 +64,13 @@ def main(page: ft.Page):
     page.navigation_bar.visible = False
     page.appbar.visible = False
 
-    main = Container()
+    main = Container(expand=True)
 
     def route_change(e: ft.RouteChangeEvent):
-        print(e.route)
         match e.route:
+            case "/":
+                page.route = "/central"
+                page.update()
             case "/central":
                 page.navigation_bar.visible = True
                 page.appbar.visible = True
@@ -86,33 +94,6 @@ def main(page: ft.Page):
                         Container(
                             Row(
                                 [
-                                    Container(
-                                        expand=True,
-                                    ),
-                                    ElevatedButton(
-                                        content=Container(
-                                            Row(
-                                                [
-                                                    Icon("add"),
-                                                    Column(
-                                                        [
-                                                            Text(value=disp['nome'], size=20),
-                                                            Text(value=disp['tipo']),
-                                                        ],
-                                                        spacing=5,
-                                                    ),
-                                                ],
-                                                spacing=30
-                                            ),
-                                            margin=Margin(10,10,10,10)
-                                        ),
-                                        style=ButtonStyle(
-                                            shape=RoundedRectangleBorder(radius=10),
-                                        ),
-                                        height=150,
-                                        width=150,
-                                        key="Opa"
-                                    ),
                                     Container(
                                         expand=True,
                                     ),
@@ -218,7 +199,123 @@ def main(page: ft.Page):
                 main.content = tela
                 page.update()
 
+            case "/configuracoes":
+                page.navigation_bar.visible = True
+                page.appbar.visible = True
+
+                tela = Column(
+                    [
+                        ListView()
+                    ],
+                    expand=True
+                )
+
+                nova_tela = [
+                    Container(
+                        Column(
+                            [
+                                Row(
+                                    [
+                                        Image(
+                                            src="/images/perfil.jpg",
+                                            width=150,
+                                            height=150,
+                                            fit=ImageFit.NONE,
+                                            repeat=ImageRepeat.NO_REPEAT,
+                                            border_radius=border_radius.all(100)
+                                        ),
+                                    ],
+                                    #expand=True,
+                                    alignment=MainAxisAlignment.CENTER,
+                                ),
+                                Column(
+                                    [
+                                        Container(
+                                            Row(
+                                                [
+                                                    TextButton(
+                                                        expand=True,
+                                                        content=Container(
+                                                            Row(
+                                                                [
+                                                                    Icon(icons.PERSON_2_ROUNDED, size=30),
+                                                                    Text("Seus dados", size=20),
+                                                                ],
+                                                                alignment=MainAxisAlignment.START,
+                                                                vertical_alignment=CrossAxisAlignment.CENTER,
+                                                            )
+                                                        ),
+                                                    ),
+                                                ],
+                                                alignment=MainAxisAlignment.START,
+                                                vertical_alignment=CrossAxisAlignment.CENTER,
+                                            ),
+                                        ),
+                                        Container(
+                                            Row(
+                                                [
+                                                    TextButton(
+                                                        expand=True,
+                                                        content=Container(
+                                                            Row(
+                                                                [
+                                                                    Icon(icons.HOME_ROUNDED, size=30),
+                                                                    Text("Residencias", size=20),
+                                                                ],
+                                                                alignment=MainAxisAlignment.START,
+                                                                vertical_alignment=CrossAxisAlignment.CENTER,
+                                                            )
+                                                        ),
+                                                    ),
+                                                ],
+                                                alignment=MainAxisAlignment.START,
+                                                vertical_alignment=CrossAxisAlignment.CENTER,
+                                            ),
+                                        ),
+                                        Container(
+                                            Row(
+                                                [
+                                                    TextButton(
+                                                        expand=True,
+                                                        content=Container(
+                                                            Row(
+                                                                [
+                                                                    Icon(icons.LOGOUT_ROUNDED, size=30),
+                                                                    Text("Sair", size=20),
+                                                                ],
+                                                                alignment=MainAxisAlignment.START,
+                                                                vertical_alignment=CrossAxisAlignment.CENTER,
+                                                            )
+                                                        ),
+                                                    ),
+                                                ],
+                                                alignment=MainAxisAlignment.START,
+                                                vertical_alignment=CrossAxisAlignment.CENTER,
+                                            ),
+                                        ),
+                                    ],
+                                    expand=True,
+                                )
+                            ]
+                        ),
+                        margin=margin.only(top=50),
+                    )
+                ]
+
+                tela.controls = nova_tela
+                main.content = tela
+                page.update()
+
+    page.route = "/central"
+    page.update()
+
     page.on_route_change = route_change
     page.add(main)
 
-ft.app(target=main, view=ft.WEB_BROWSER)
+ft.app(
+    target=main,
+    host="0.0.0.0",
+    port=22022,
+    assets_dir="assets",
+    view=ft.WEB_BROWSER
+)

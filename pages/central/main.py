@@ -15,7 +15,8 @@ from flet import(
     CrossAxisAlignment,
     Margin,
     margin,
-    TextAlign
+    TextAlign,
+    Image,
 )
 
 import navigation
@@ -46,33 +47,6 @@ def on_visible(page):
             Container(
                 Row(
                     [
-                        Container(
-                            expand=True,
-                        ),
-                        ElevatedButton(
-                            content=Container(
-                                Row(
-                                    [
-                                        Icon("add"),
-                                        Column(
-                                            [
-                                                Text(value=disp['nome'], size=20),
-                                                Text(value=disp['tipo']),
-                                            ],
-                                            spacing=5,
-                                        ),
-                                    ],
-                                    spacing=30
-                                ),
-                                margin=Margin(10,10,10,10)
-                            ),
-                            style=ButtonStyle(
-                                shape=RoundedRectangleBorder(radius=10),
-                            ),
-                            height=150,
-                            width=150,
-                            key="Opa"
-                        ),
                         Container(
                             expand=True,
                         ),
