@@ -15,3 +15,33 @@ def dispositivos_usr():
     if response.status_code == 200:
         #print(response.json()['result'])
         return response.json()['result']
+    
+def residencias_usr(token):
+    url_base = sv_config.get('url_base')
+
+    update_url = f"{url_base}/api/v1/residencias"
+
+    headers = {
+        'x-access-token': token
+    }
+
+    response = requests.get(update_url, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()['result']
+    
+def verificar_token(token):
+    url_base = sv_config.get('url_base')
+
+    update_url = f"{url_base}/api/auth/verify"
+
+    headers = {
+        'x-access-token': token
+    }
+
+    response = requests.get(update_url, headers=headers)
+
+    if response.status_code == 200:
+        return True
+    else:
+        return False
