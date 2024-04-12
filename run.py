@@ -133,9 +133,26 @@ def main(page: ft.Page):
                     )
 
                     for disp in dispositivos:
-                        info = disp['info']
-                        info_json = json.loads(info)
-                        print(info_json)
+
+                        print(json.loads(disp['info'])['temp'])
+
+                        sensor_info = {
+                            "termometro": {
+                                "icon": "THERMOSTAT",
+                                "label": "Temperatura do\nambiente",
+                                "value": str(json.loads(disp['info'])['temp']) + " °C"
+                            },
+                            "gas": {
+                                "icon": "GAS_STATION",
+                                "label": "Gás",
+                                "value": str(disp['data_alteracao'])
+                            },
+                            "presenca": {
+                                "icon": "PEOPLE",
+                                "label": "Presença",
+                                "value": str(disp['data_alteracao'])
+                            },
+                        }
 
                         listaDisp.append(
                             Container(
@@ -156,8 +173,8 @@ def main(page: ft.Page):
                                                                 ),
                                                                 Row(
                                                                     [
-                                                                        Icon("THERMOSTAT", size=30),
-                                                                        Text(value=str(json.loads(disp['info'])['temp']) + " °C", size=20),
+                                                                        Icon(sensor_info[disp['tipo']]['icon'], size=30),
+                                                                        Text(value=sensor_info[disp['tipo']]['value'], size=20),
                                                                     ],
                                                                     spacing=30
                                                                     #expand=True
@@ -165,7 +182,7 @@ def main(page: ft.Page):
                                                                 Container(
                                                                     expand=True,
                                                                 ),
-                                                                Text(value="Temperatura do\nambiente", text_align=TextAlign.CENTER),
+                                                                Text(value=sensor_info[disp['tipo']]['label'], text_align=TextAlign.CENTER),
                                                                 Container(
                                                                     expand=True,
                                                                 ),
