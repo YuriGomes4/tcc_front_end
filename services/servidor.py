@@ -29,6 +29,24 @@ def residencias_usr(token):
 
     if response.status_code == 200:
         return response.json()['result']
+    else:
+        return []
+    
+def areas_resid(token, id_resid):
+    url_base = sv_config.get('url_base')
+
+    update_url = f"{url_base}/api/v1/residencias/{id_resid}/areas"
+
+    headers = {
+        'x-access-token': token
+    }
+
+    response = requests.get(update_url, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()['result']
+    else:
+        return []
     
 def verificar_token(token):
     url_base = sv_config.get('url_base')

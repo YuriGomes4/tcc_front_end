@@ -1,3 +1,5 @@
+from datetime import datetime
+from time import sleep
 import flet as ft
 import json
 from flet import(
@@ -67,7 +69,7 @@ def main(page: ft.Page):
     page.appbar.visible = False
     page.appbar = ft.AppBar(leading=None, title=ft.Text("Aplicativo"), bgcolor=ft.colors.INDIGO)
 
-    main = Container(expand=True)
+    main = Column(expand=True)
 
     def back(e):
         rotas = str(page.route).split("/")
@@ -112,7 +114,7 @@ def main(page: ft.Page):
                 )
 
                 #tela.controls = nova_tela
-                main.content = tela
+                main.controls = [tela]
                 page.update()
 
             case "/central":
@@ -123,97 +125,82 @@ def main(page: ft.Page):
                     page.floating_action_button = None
                     listaDisp = []
 
-                    dispositivos = sv_servidor.dispositivos_usr()
+                    disp_flet = []
 
-                    tela = Column(
-                        [
-                            ListView()
-                        ],
-                        #visible=False
-                    )
+                    dispositivos = sv_servidor.dispositivos_usr()
 
                     for disp in dispositivos:
 
-                        print(json.loads(disp['info'])['temp'])
+                        sensor_icon = ""
+                        sensor_label = ""
+                        sensor_value = ""
 
-                        sensor_info = {
-                            "termometro": {
-                                "icon": "THERMOSTAT",
-                                "label": "Temperatura do\nambiente",
-                                "value": str(json.loads(disp['info'])['temp']) + " °C"
-                            },
-                            "gas": {
-                                "icon": "GAS_STATION",
-                                "label": "Gás",
-                                "value": str(disp['data_alteracao'])
-                            },
-                            "presenca": {
-                                "icon": "PEOPLE",
-                                "label": "Presença",
-                                "value": str(disp['data_alteracao'])
-                            },
-                        }
+                        match disp['tipo']:
+                            case "termometro":
+                                sensor_icon = "THERMOSTAT"
+                                sensor_label = "Temperatura do\nambiente"
+                                sensor_value = Text(value=str(json.loads(str(json.loads(disp['info'])))['temp']) + " °C", size=20)
+                            case "gas":
+                                sensor_icon = "GAS_METER"
+                                sensor_label = datetime.strptime(disp['data_alteracao'], "%Y-%m-%dT%H:%M:%S.%f").strftime("%d/%m/%Y\n%H:%M")
+                                sensor_value = Text(value="Gás", size=20)
+                            case "presenca":
+                                sensor_icon = "EMOJI_PEOPLE"
+                                #Formate a data_alteracao(2023-10-25T03.898296) para dd/mm/aaaa\nhh:mm
+                                sensor_label = datetime.strptime(disp['data_alteracao'], "%Y-%m-%dT%H:%M:%S.%f").strftime("%d/%m/%Y\n%H:%M")
+                                sensor_value = Text(value="Presença", size=15)
 
                         listaDisp.append(
-                            Container(
-                                Row(
-                                    [
-                                        Container(
-                                            expand=True,
-                                        ),
-                                        ElevatedButton(
-                                            content=Container(
-                                                Row(
-                                                    [
-                                                        #Icon("add"),
-                                                        Column(
-                                                            [
-                                                                Container(
-                                                                    expand=True,
-                                                                ),
-                                                                Row(
-                                                                    [
-                                                                        Icon(sensor_info[disp['tipo']]['icon'], size=30),
-                                                                        Text(value=sensor_info[disp['tipo']]['value'], size=20),
-                                                                    ],
-                                                                    spacing=30
-                                                                    #expand=True
-                                                                ),
-                                                                Container(
-                                                                    expand=True,
-                                                                ),
-                                                                Text(value=sensor_info[disp['tipo']]['label'], text_align=TextAlign.CENTER),
-                                                                Container(
-                                                                    expand=True,
-                                                                ),
-                                                            ],
-                                                            alignment=MainAxisAlignment.CENTER,
-                                                            horizontal_alignment=CrossAxisAlignment.CENTER,
-                                                            #spacing=5,
-                                                        ),
-                                                    ],
-                                                    #spacing=30
-                                                ),
-                                                #margin=Margin(0,10,100,10)
+                            ElevatedButton(
+                                content=Container(
+                                    Column(
+                                        [
+                                            Column(
+                                                [
+                                                    Row(
+                                                        [
+                                                            Icon(sensor_icon, size=30),
+                                                            sensor_value,
+                                                        ],
+                                                        alignment=MainAxisAlignment.SPACE_BETWEEN,
+                                                    ),
+                                                    Text(value=sensor_label, text_align=TextAlign.CENTER),
+                                                ],
+                                                alignment=MainAxisAlignment.SPACE_BETWEEN,
+                                                horizontal_alignment=CrossAxisAlignment.CENTER,
+                                                expand=True,
                                             ),
-                                            style=ButtonStyle(
-                                                shape=RoundedRectangleBorder(radius=10),
-                                            ),
-                                            #expand=True,
-                                            height=150,
-                                            width=150
-                                        ),
-                                        Container(
-                                            expand=True,
-                                        ),
-                                    ],
-                                    expand=True
-                                )
-                            )
+                                        ],
+                                        expand=True,
+                                        #spacing=30
+                                    ),
+                                    #bgcolor=ft.colors.LIGHT_BLUE,
+                                    margin=Margin(0,25,0,25),
+                                ),
+                                style=ButtonStyle(
+                                    shape=RoundedRectangleBorder(radius=10),
+                                ),
+                                #expand=True,
+                                height=150,
+                                width=150
+                            ),
                         )
 
-                    tela.controls = listaDisp
-                    main.content = tela
+                    tela = Column(
+                        [
+                            Row(
+                                listaDisp,
+                                wrap=True,
+                                alignment=MainAxisAlignment.SPACE_AROUND,
+                            )
+                        ],
+                        horizontal_alignment=CrossAxisAlignment.STRETCH,
+                        #visible=False
+                        expand=True
+                    )
+
+                    #tela.controls = listaDisp
+                    main.controls = [tela]
                     page.update()
 
             case "/dispositivos":
@@ -225,6 +212,10 @@ def main(page: ft.Page):
                     listaDisp = []
 
                     dispositivos = sv_servidor.dispositivos_usr()
+
+                    def go_to_add_dispositivo(e):
+                        page.route = "/dispositivos/adicionar"
+                        page.update()
 
                     tela = Column(
                         [
@@ -262,12 +253,111 @@ def main(page: ft.Page):
                         )
 
                     tela.controls = listaDisp
-                    main.content = tela
+                    main.controls = [tela]
                     page.floating_action_button = ft.FloatingActionButton(
                         icon=ft.icons.ADD,
-                        #on_click=fab_pressed,
+                        on_click=go_to_add_dispositivo,
                         #bgcolor=ft.colors.LIME_300
                     )
+                    page.update()
+
+            case "/dispositivos/adicionar":
+                if verify_token():
+                    page.navigation_bar.visible = True
+                    page.appbar.visible = True
+                    page.appbar = ft.AppBar(leading=None, title=ft.Text("Adicionar dispositivo"), bgcolor=ft.colors.INDIGO)
+                    page.floating_action_button = None
+
+                    listaDisp = []
+
+                    dispositivos = sv_servidor.dispositivos_usr()
+
+                    residencias = sv_servidor.residencias_usr(page.session.get("token"))
+
+                    resid_options = []
+
+                    for resid in residencias:
+                        resid_options.append(ft.dropdown.Option(resid['id'], resid['nome']))
+
+                    try:
+                        areas_resid = sv_servidor.areas_resid(page.session.get("token"), residencias[0]['id'])
+                    except:
+                        areas_resid = []
+
+                    area_options = []
+
+                    for area in areas_resid:
+                        area_options.append(ft.dropdown.Option(area['id'], area['nome']))
+
+                    def change_resid(e):
+                        #print(e.control.value)
+                        areas_resid = sv_servidor.areas_resid(page.session.get("token"), e.control.value)
+                        area_options = []
+                        for area in areas_resid:
+                            area_options.append(ft.dropdown.Option(area['id'], area['nome']))
+                        tela.controls[0].controls[4].options = area_options
+                        tela.controls[0].controls[4].value = areas_resid[0]['id'] if len(areas_resid) > 0 else None
+                        page.update()
+
+                    def add_dispositivo(e):
+                        print("Adicionar dispositivo")
+                        page.navigation_bar.visible = False
+                        page.appbar.visible = False
+                        page.floating_action_button = None
+                        main.controls = [
+                            Column(
+                                [
+                                    Row(
+                                        [
+                                            Text("Dispositivo adicionado com sucesso!", size=45, text_align=TextAlign.CENTER, expand=True),
+                                        ],
+                                        alignment=MainAxisAlignment.CENTER,
+                                    )
+                                ],
+                                alignment=MainAxisAlignment.CENTER,
+                                horizontal_alignment=CrossAxisAlignment.CENTER,
+                                expand=True
+                            )
+                        ]
+                        page.update()
+                        sleep(3000)
+                        page.route = "/dispositivos"
+
+
+                    tela = Column(
+                        [
+                            Column(
+                                [
+                                    ft.Dropdown(label="Tipo de dispositivo", options=[ft.dropdown.Option("termometro", "Termômetro"), ft.dropdown.Option("gas", "Sensor de gás"), ft.dropdown.Option("presenca", "Sensor de presença")], value="termometro"),
+                                    ft.TextField(label="Nome do dispositivo"),
+                                    ft.TextField(label="Código do dispositivo"),
+                                    ft.Dropdown(label="Residência", options=resid_options, value=residencias[0]['id'] if len(residencias) > 0 else None, on_change=change_resid),
+                                    ft.Dropdown(label="Área", options=area_options, value=areas_resid[0]['id'] if len(areas_resid) > 0 else None),
+                                ]
+                            ),
+                            ElevatedButton(
+                                content=Container(
+                                    Row(
+                                        [
+                                            Text("Adicionar", size=30),
+                                        ],
+                                        alignment=MainAxisAlignment.CENTER,
+                                    ),
+                                    margin=Margin(10,10,10,10),
+                                ),
+                                style=ButtonStyle(
+                                    shape=RoundedRectangleBorder(radius=10),
+                                ),
+                                on_click=add_dispositivo,
+                            )
+                        ],
+                        #visible=False
+                        alignment=MainAxisAlignment.SPACE_BETWEEN,
+                        expand=True
+                    )
+
+                    
+                    main.controls = [tela]
                     page.update()
 
             case "/configuracoes":
@@ -383,7 +473,7 @@ def main(page: ft.Page):
                     ]
 
                     tela.controls = nova_tela
-                    main.content = tela
+                    main.controls = [tela]
                     page.update()
 
             case "/configuracoes/residencias":
@@ -436,7 +526,7 @@ def main(page: ft.Page):
                     tela.content.controls = listaResids
 
                     #tela.controls = nova_tela
-                    main.content = tela
+                    main.controls = [tela]
                     page.update()
 
     page.route = "/central"
