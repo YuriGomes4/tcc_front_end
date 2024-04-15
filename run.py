@@ -1,7 +1,6 @@
 from datetime import datetime
 from time import sleep
 import flet as ft
-import json
 from flet import(
     Column,
     ListView,
@@ -27,8 +26,6 @@ from flet import(
     TextButton,
 )
 
-import navigation
-import services.config as sv_config
 import services.servidor as sv_servidor
 
 def main(page: ft.Page):

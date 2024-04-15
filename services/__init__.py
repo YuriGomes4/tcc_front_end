@@ -1,3 +1,3 @@
 from . import servidor
-from . import categorias
-from . import upload
+#from . import categorias
+#from . import upload
