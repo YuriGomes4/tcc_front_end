@@ -30,8 +30,8 @@ import services.servidor as sv_servidor
 
 def main(page: ft.Page):
 
-    page.session.set("token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZF9wdWJsaWNvIjoiYzkxNGQzOWYtNDc1Yy00NWMzLTgzYTgtYTM1ODFmMzNkOTQwIn0.AUkj4ipNLF46vqMRul51Jgd6AdX2HbBpxDowSzOIIOo")
-    #page.session.set("token", "aaa")
+    #page.session.set("token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZF9wdWJsaWNvIjoiYzkxNGQzOWYtNDc1Yy00NWMzLTgzYTgtYTM1ODFmMzNkOTQwIn0.AUkj4ipNLF46vqMRul51Jgd6AdX2HbBpxDowSzOIIOo")
+    page.session.set("token", "aaa")
 
     #page.bgcolor = ft.colors.WHITE24
     page.theme_mode = ft.ThemeMode.LIGHT
