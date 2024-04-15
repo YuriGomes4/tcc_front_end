@@ -1,0 +1,12 @@
+[Unit]
+Description=TCC Front End
+After=network.target
+
+[Service]
+User=admin
+ExecStart=/home/admin/tcc_front_end/venv/bin/python3 /home/admin/tcc_front_end/run.py
+WorkingDirectory=/home/admin/tcc_front_end
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
