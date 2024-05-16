@@ -1,4 +1,5 @@
 from datetime import datetime
+import threading
 from time import sleep
 import flet as ft
 from flet import(
@@ -30,6 +31,8 @@ import services.servidor as sv_servidor
 
 def main(page: ft.Page):
 
+    stops = []
+
     #page.session.set("token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZF9wdWJsaWNvIjoiYzkxNGQzOWYtNDc1Yy00NWMzLTgzYTgtYTM1ODFmMzNkOTQwIn0.AUkj4ipNLF46vqMRul51Jgd6AdX2HbBpxDowSzOIIOo")
     page.session.set("token", "aaa")
 
@@ -42,6 +45,130 @@ def main(page: ft.Page):
         title=ft.Text("Produtos"),
         #bgcolor=ft.colors.GREEN_400,
     )
+
+    def atualizar():
+        print("Atualizando")
+        if verify_token():
+            page.navigation_bar.visible = True
+            page.appbar.visible = True
+            #page.appbar = ft.AppBar(leading=None, title=ft.Text("Central"), bgcolor=ft.colors.GREEN_400)
+            page.appbar.leading = None
+            page.appbar.title = ft.Text("Central")
+            page.floating_action_button = None
+            listaDisp = []
+
+            dispositivos = sv_servidor.dispositivos_usr(page.session.get("token"))
+
+            if len(dispositivos) > 0:
+
+                for disp in dispositivos:
+
+                    sensor_icon = ""
+                    sensor_label = ""
+                    sensor_value = ""
+
+                    match disp['tipo']:
+                        case "termometro":
+                            try:
+                                dispositivos.append({'info': {'umid': disp['info']['umid']}, 'data_alteracao': disp['data_alteracao'], 'tipo': 'umidade'})
+                            except:
+                                pass
+                            sensor_icon = "THERMOSTAT"
+                            sensor_label = "Temperatura do\nambiente"
+                            try:
+                                sensor_value = Text(value=str(disp['info']['temp']) + " °C", size=20)
+                            except:
+                                sensor_value = Text(value="Indisponível", size=20)
+                        case "gas":
+                            sensor_icon = "GAS_METER"
+                            try:
+                                sensor_label = "Gás detectado" if str(disp['info']['status']) == "0" else "Nada detectado"
+                            except:
+                                sensor_label = "Indisponível"
+                            sensor_value = Text(value="Gás", size=20)
+                        case "presenca":
+                            sensor_icon = "EMOJI_PEOPLE"
+                            #Formate a data_alteracao(2023-10-25T03.898296) para dd/mm/aaaa\nhh:mm
+                            try:
+                                sensor_label = "Presença detectada" if str(disp['info']['status']) == "1" else "Nada detectado"
+                            except:
+                                sensor_label = "Indisponível"
+                            sensor_value = Text(value="Presença", size=15)
+                        case "umidade":
+                            sensor_icon = "WATER"
+                            sensor_label = "Umidade do\nambiente"
+                            try:
+                                sensor_value = Text(value=str(disp['info']['umid']) + " %", size=20)
+                            except:
+                                sensor_value = Text(value="Indisponível", size=20)
+
+                    listaDisp.append(
+                        ElevatedButton(
+                            content=Container(
+                                Column(
+                                    [
+                                        Column(
+                                            [
+                                                Row(
+                                                    [
+                                                        Icon(sensor_icon, size=30),
+                                                        sensor_value,
+                                                    ],
+                                                    alignment=MainAxisAlignment.SPACE_BETWEEN,
+                                                ),
+                                                Text(value=sensor_label, text_align=TextAlign.CENTER),
+                                            ],
+                                            alignment=MainAxisAlignment.SPACE_BETWEEN,
+                                            horizontal_alignment=CrossAxisAlignment.CENTER,
+                                            expand=True,
+                                        ),
+                                    ],
+                                    expand=True,
+                                    #spacing=30
+                                ),
+                                #bgcolor=ft.colors.LIGHT_BLUE,
+                                margin=Margin(0,25,0,25),
+                            ),
+                            style=ButtonStyle(
+                                shape=RoundedRectangleBorder(radius=10),
+                            ),
+                            #expand=True,
+                            height=150,
+                            width=150
+                        ),
+                    )
+
+                tela = Column(
+                    [
+                        Row(
+                            listaDisp,
+                            wrap=True,
+                            alignment=MainAxisAlignment.SPACE_AROUND,
+                        )
+                    ],
+                    horizontal_alignment=CrossAxisAlignment.STRETCH,
+                    #visible=False
+                    expand=True
+                )
+
+            else:
+                tela = Column(
+                    [
+                        Row(
+                            [
+                                Text('Nenhum dispositivo cadastrado!\nVá para "Dispositivos" e cadastre um.', size=30, text_align=TextAlign.CENTER, expand=True),
+                            ],
+                            alignment=MainAxisAlignment.CENTER,
+                        )
+                    ],
+                    alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    expand=True
+                )
+
+            #tela.controls = listaDisp
+            main.controls = [tela]
+            page.update()
 
     def on_change_navbar(e):
         match e.control.selected_index:
@@ -100,6 +227,22 @@ def main(page: ft.Page):
                 return False
 
     def route_change(e: ft.RouteChangeEvent):
+
+        
+
+        all_threads = threading.enumerate()
+        print(len(all_threads))
+
+        if len(all_threads) > 1:
+            for t in all_threads:
+                if t.name.__contains__("verificar_dispositivos"):
+                    print("Stopping thread")
+                    stops[int(t.name.split('$')[1])-1].set()
+                else:
+                    print(t.name)
+
+
+
         match e.route:
             case "/":
                 if verify_token():
@@ -264,18 +407,38 @@ def main(page: ft.Page):
 
                             match disp['tipo']:
                                 case "termometro":
+                                    try:
+                                        dispositivos.append({'info': {'umid': disp['info']['umid']}, 'data_alteracao': disp['data_alteracao'], 'tipo': 'umidade'})
+                                    except:
+                                        pass
                                     sensor_icon = "THERMOSTAT"
                                     sensor_label = "Temperatura do\nambiente"
-                                    sensor_value = Text(value=str(disp['info']['temp']) + " °C", size=20)
+                                    try:
+                                        sensor_value = Text(value=str(disp['info']['temp']) + " °C", size=20)
+                                    except:
+                                        sensor_value = Text(value="Indisponível", size=20)
                                 case "gas":
                                     sensor_icon = "GAS_METER"
-                                    sensor_label = datetime.strptime(disp['data_alteracao'], "%Y-%m-%dT%H:%M:%S.%f").strftime("%d/%m/%Y\n%H:%M")
+                                    try:
+                                        sensor_label = "Gás detectado" if str(disp['info']['status']) == "0" else "Nada detectado"
+                                    except:
+                                        sensor_label = "Indisponível"
                                     sensor_value = Text(value="Gás", size=20)
                                 case "presenca":
                                     sensor_icon = "EMOJI_PEOPLE"
                                     #Formate a data_alteracao(2023-10-25T03.898296) para dd/mm/aaaa\nhh:mm
-                                    sensor_label = datetime.strptime(disp['data_alteracao'], "%Y-%m-%dT%H:%M:%S.%f").strftime("%d/%m/%Y\n%H:%M")
+                                    try:
+                                        sensor_label = "Presença detectada" if str(disp['info']['status']) == "1" else "Nada detectado"
+                                    except:
+                                        sensor_label = "Indisponível"
                                     sensor_value = Text(value="Presença", size=15)
+                                case "umidade":
+                                    sensor_icon = "WATER"
+                                    sensor_label = "Umidade do\nambiente"
+                                    try:
+                                        sensor_value = Text(value=str(disp['info']['umid']) + " %", size=20)
+                                    except:
+                                        sensor_value = Text(value="Indisponível", size=20)
 
                             listaDisp.append(
                                 ElevatedButton(
@@ -344,6 +507,35 @@ def main(page: ft.Page):
                     #tela.controls = listaDisp
                     main.controls = [tela]
                     page.update()
+
+                    def verificar_dispositivos(page, dispositivos, event: threading.Event):
+                        while True:
+                            if event.is_set():
+                                print('The thread was stopped.')
+                                break
+
+                            novos_dispositivos = sv_servidor.dispositivos_usr(page.session.get("token"))
+
+                            if len(novos_dispositivos) != len(dispositivos):
+                                atualizar()
+                                dispositivos = novos_dispositivos
+
+                            else:
+                                for i in range(len(novos_dispositivos)):
+                                    if novos_dispositivos[i]['info'] != dispositivos[i]['info']:
+                                        print(novos_dispositivos[i]['info'], dispositivos[i]['info'])
+                                        atualizar()
+                                        dispositivos = novos_dispositivos
+
+                            sleep(2)
+
+
+                    stop = threading.Event()
+                    stops.append(stop)
+
+                    #Inicie uma thread para ficar verificando se teve mudanças nos dispositivos
+                    thread = threading.Thread(target=verificar_dispositivos, args=(page,dispositivos,stop,), name="verificar_dispositivos$"+str(len(stops)))
+                    thread.start()
 
             case "/dispositivos":
                 if verify_token():

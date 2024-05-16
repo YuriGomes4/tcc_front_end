@@ -1,4 +1,4 @@
 versao: 0.0.1
-test_url_base: http://localhost:5000
-url_base: http://179.250.18.222:5000
+url_base: http://localhost:5000
+orig_url_base: http://179.250.18.222:5000
 email: teste@teste.com

@@ -1,26 +1,26 @@
-import flet as ft
+import threading
+import time
 
-def main(page: ft.Page):
-    page.title = "Images Example"
-    page.theme_mode = ft.ThemeMode.LIGHT
-    page.padding = 50
-    page.update()
+# Função que será chamada pela thread
+def minha_funcao1():
+    print("Esta é a função 1 sendo executada pela thread")
+    time.sleep(2)
+    minha_funcao2()
+    print("A função 1 terminou sua execução")
+    # Após terminar, chama a função 2
 
-    img = ft.Image(
-        src=f"/icons/icon-512.png",
-        width=100,
-        height=100,
-        fit=ft.ImageFit.CONTAIN,
-    )
-    images = ft.Row(expand=1, wrap=False, scroll="always", controls=[ft.Image(
-                src=f"https://picsum.photos/200/200?1",
-                width=200,
-                height=200,
-                fit=ft.ImageFit.NONE,
-                repeat=ft.ImageRepeat.NO_REPEAT,
-                border_radius=ft.border_radius.all(10),
-            )])
+# Outra função do código
+def minha_funcao2():
+    print("Esta é a função 2 chamada pela função 1")
 
-    page.add(img, images)
+# Criando e iniciando a thread
+minha_thread = threading.Thread(target=minha_funcao1)
+minha_thread.start()
 
-ft.app(target=main)
+# O restante do código continua sendo executado enquanto a thread roda em paralelo
+print("Aqui está o restante do código")
+
+# Espera a thread terminar para continuar
+minha_thread.join()
+
+print("O programa terminou completamente")
